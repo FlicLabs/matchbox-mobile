@@ -52,6 +52,8 @@ class _MatchedUsersViewState extends State<MatchedUsersView> {
           children: [
             Constant.buildTransparentAppBar(),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 InkWell(
                   onTap: (){
