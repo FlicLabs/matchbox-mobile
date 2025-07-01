@@ -62,7 +62,7 @@ class DashboardView extends StatelessWidget {
             ],
           ),
         ),
-        body: HomeView(),
+        body: QuestionFlowScreen(),
       );
   }
   AppBar buildTransparentAppBar() {

@@ -41,70 +41,97 @@ class _OneToOneChatPageState extends State<OneToOneChatPage> {
   @override
   Widget build(BuildContext context) {
     final chatId = getChatId();
+    final gradientBackground = BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
 
+      ),
+    );
     return Scaffold(
-      appBar: AppBar(title: Text("Chat")),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('chats')
-                  .doc(chatId)
-                  .collection('messages')
-                  .orderBy('timestamp')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return Center(child: CircularProgressIndicator());
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text("Chat",style: TextStyle(color: Colors.white),),
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: gradientBackground,
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('chats')
+                    .doc(chatId)
+                    .collection('messages')
+                    .orderBy('timestamp')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData)
+                    return Center(child: CircularProgressIndicator());
 
-                final messages = snapshot.data!.docs;
+                  final messages = snapshot.data!.docs;
 
-                return ListView.builder(
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final doc = messages[index];
-                    final isMe = doc['senderId'] == currentUser!.uid;
+                  return ListView.builder(
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final doc = messages[index];
+                      final isMe = doc['senderId'] == currentUser!.uid;
 
-                    return Align(
-                      alignment:
-                      isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Card(
-                        color: isMe ? Colors.blue[100] : Colors.grey[300],
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Text(doc['message']),
+                      return Align(
+                        alignment:
+                        isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Card(
+                          color: isMe ? Color(0xFF0F2027).withOpacity(0.8) : Color(0xFF0F2027).withOpacity(0.8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: Text(doc['message'],style: TextStyle(color: Colors.white),),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message',
+                        hintStyle: TextStyle(color: Colors.white54),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.1),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(26),
+                          borderSide: BorderSide.none,
                         ),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24)),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: sendMessage,
-                )
-              ],
-            ),
-          )
-        ],
+                  SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: Color(0xFF0F2027),
+                    child: IconButton(
+                      icon: Icon(Icons.send, color: Colors.white),
+                      onPressed: sendMessage,
+                    ),
+                  )
+                ],
+              ),
+            )
+
+          ],
+        ),
       ),
     );
   }

@@ -13,12 +13,12 @@ import 'app/utils/sharedprefrence.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  /*FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Received a message while in foreground: ${message.notification?.title}');
 
     if (message.notification != null) {
     }
-  });
+  });*/
 
   await Firebase.initializeApp();
   await SharedPrefService().init();
@@ -29,6 +29,12 @@ Future<void> main() async {
       initialRoute: AppPages.INITIAL,
       initialBinding: SplashBinding(),
       getPages: AppPages.routes,
+      theme: ThemeData(
+        primaryColor: Color(0xFF0F2027),
+        colorScheme: ColorScheme.fromSeed(
+            brightness: Brightness.light,
+            primary: Color(0xFF0F2027), seedColor: Color(0xFF0F2027))
+      ),
     ),
   );
 

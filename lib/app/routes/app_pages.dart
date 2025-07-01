@@ -17,7 +17,7 @@ class AppPages {
   static final routes = [
     GetPage(
       name: _Paths.HOME,
-      page: () =>  HomeView(),
+      page: () =>  QuestionFlowScreen(),
       binding: HomeBinding(),
     ),
     GetPage(

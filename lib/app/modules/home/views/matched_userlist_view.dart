@@ -26,196 +26,195 @@ class MatchedUsersView extends StatefulWidget {
 }
 
 class _MatchedUsersViewState extends State<MatchedUsersView> {
-  FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
   Map<String, dynamic> data = {};
 
   @override
   void initState() {
-    getUserdata().then(
-      (value) {
-        data = value;
-        setState(() {});
-      },
-    );
-
     super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    final uid = _auth.currentUser!.uid;
+    final snapshot = await _firestore.collection('users').doc(uid).get();
+    setState(() => data = snapshot.data()!);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppColors.xlightback1,
-                AppColors.xlightback2,
-                AppColors.xlightback3 // End color
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: SingleChildScrollView(
-              child: Stack(
-                children: [
-                  Column(
-                    children: [
-                      ListTile(
-                        leading:
-                            const Icon(Icons.arrow_back, color: Colors.black),
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Hello, ${data["name"].toString()}',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(
-                              width: 30,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Card(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              10), // Set the corner radius here
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            Get.to(EventList());
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Image.asset(
-                                  "assets/images/notificationicon.png",
-                                  scale: 1.5,
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                const Text(
-                                  "Event",
-                                  textAlign: TextAlign.start,
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              10), // Set the corner radius here
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            Get.to(ProfilePage(userId: data["uid"]));
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Image.asset(
-                                  "assets/images/person.png",
-                                  scale: 1.5,
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                Text(
-                                  "Profile",
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: Get.height / 1.6,
-                      ),
-                      Align(
-                        alignment: Alignment.bottomLeft,
-                        child: Card(
-                          margin:
-                              EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                10), // Set the corner radius here
-                          ),
-                          child: GestureDetector(
-                            onTap: () async {
-                              await SharedPrefService().clearUserDetails();
-                              Get.offAll(SplashView());
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Image.asset(
-                                    "assets/images/logout.png",
-                                    color: AppColors.xPrimaryColor,
-                                    scale: 1.5,
-                                  ),
-                                  const SizedBox(
-                                    width: 30,
-                                  ),
-                                  const Text(
-                                    "Logout",
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.normal),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      drawer: _buildDrawer(),
       body: Container(
         decoration: AppDecorations.gradientBackground,
         child: Column(
           children: [
             Constant.buildTransparentAppBar(),
+            Row(
+              children: [
+                InkWell(
+                  onTap: (){
+                    Get.to(const EventList());
+
+                  },
+                  child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 6))
+                        ],
+                      ),
+
+                      child:  ClipRRect(
+                        borderRadius: BorderRadius.circular(26),
+                        child: Stack(
+                          children: [
+                            // Profile Image
+                            Image.asset(
+                              "assets/images/image1.png",
+                              height: 180,
+                              width: 180,
+                              fit: BoxFit.cover,
+                              // loadingBuilder: (context, child, loadingProgress) =>
+                              // loadingProgress == null
+                              //     ? child
+                              //     : Container(
+                              //     height: 340,
+                              //     color: Colors.black12,
+                              //     child: const Center(child: CircularProgressIndicator())),
+                            ),
+
+                            // Gradient Overlay
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              height: 120,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withOpacity(0.0),
+                                      Colors.black.withOpacity(0.65)
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Name & Match Text
+                            const Positioned(
+                              bottom: 24,
+                              left: 20,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Your Event",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  // Text(
+                                  //   "Match: ${user.matchPercent.toStringAsFixed(0)}%",
+                                  //   style: TextStyle(
+                                  //     color: Colors.white.withOpacity(0.85),
+                                  //     fontSize: 16,
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                            ),
+
+                          ],
+                        ),
+                      )),
+                ),
+                InkWell(
+                  onTap: (){
+                    Get.to(ProfilePage(userId: data["uid"]));
+                  },
+                  child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 6))
+                        ],
+                      ),
+
+                      child:  ClipRRect(
+                        borderRadius: BorderRadius.circular(26),
+                        child: Stack(
+                          children: [
+                            // Profile Image
+                            Image.asset(
+                              "assets/images/image2.png",
+                              height: 180,
+                              width: 180,
+                              fit: BoxFit.cover,
+                            ),
+
+                            // Gradient Overlay
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              height: 120,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withOpacity(0.0),
+                                      Colors.black.withOpacity(0.65)
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Name & Match Text
+                            const Positioned(
+                              bottom: 24,
+                              left: 20,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Profile",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  // Text(
+                                  //   "Match: ${user.matchPercent.toStringAsFixed(0)}%",
+                                  //   style: TextStyle(
+                                  //     color: Colors.white.withOpacity(0.85),
+                                  //     fontSize: 16,
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                            ),
+
+                          ],
+                        ),
+                      )),
+                ),
+              ],
+            ),
             Expanded(
               child: FutureBuilder<List<MatchedUser>>(
                 future: getMatchedUsers(widget.currentUserId),
@@ -230,96 +229,12 @@ class _MatchedUsersViewState extends State<MatchedUsersView> {
 
                   final matchedUsers = snapshot.data!;
                   return ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
                     itemCount: matchedUsers.length,
                     itemBuilder: (context, index) {
                       final user = matchedUsers[index];
-                      return data["email"]!=user.email?Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        elevation: 6,
-                        margin: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Image Section
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(24)),
-                                  child: Image.network(
-                                    user.image,
-                                    height: 250,
-                                    width: double.infinity,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                // Play/Pause Button
-                                Positioned(
-                                  bottom: 12,
-                                  child: Container(
-                                    padding: EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: Colors.black26,
-                                            blurRadius: 4),
-                                      ],
-                                    ),
-                                    child: InkWell(
-                                      onTap: () {
-                                        Get.to(OneToOneChatPage(otherUserId: user.uid,));
-                                      },
-                                      child: Icon(Icons.chat,
-                                          color: AppColors.xPrimaryColor,
-                                          size: 30),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-
-                            // Info Section
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "${user.name}",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  // Row(
-                                  //   mainAxisAlignment: MainAxisAlignment.center,
-                                  //   children: [
-                                  //     Icon(Icons.location_on, size: 16, color: Colors.orange),
-                                  //     SizedBox(width: 4),
-                                  //     Text(
-                                  //       "${user.location} • ${user.distance} KM",
-                                  //       style: TextStyle(color: Colors.grey[600]),
-                                  //     )
-                                  //   ],
-                                  // ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    "Match: ${user.matchPercent.toStringAsFixed(0)}%",
-                                    style: TextStyle(color: Colors.grey[600]),
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ):SizedBox();
+                      if (data["email"] == user.email) return const SizedBox();
+                      return _buildMatchedUserCard(user);
                     },
                   );
                 },
@@ -331,14 +246,197 @@ class _MatchedUsersViewState extends State<MatchedUsersView> {
     );
   }
 
-  Future<Map<String, dynamic>> getUserdata() async {
-    final User? user = _auth.currentUser;
-    String uid = _auth.currentUser!.uid;
+  Drawer _buildDrawer() {
+    return Drawer(
+      child: Container(
+        decoration: AppDecorations.gradientBackground,
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildDrawerHeader(),
+              const Divider(color: Colors.white38),
+              _buildDrawerItem("assets/images/notificationicon.png", "Events", () {
+                Get.to(const EventList());
+              }),
+              _buildDrawerItem("assets/images/person.png", "Profile", () {
+                Get.to(ProfilePage(userId: data["uid"]));
+              }),
+              const Spacer(),
+              _buildLogoutItem(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-    DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await _firestore.collection('users').doc(uid).get();
-    var userData = snapshot.data();
-    return userData!;
+  Widget _buildDrawerHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.white24,
+            radius: 28,
+            child: const Icon(Icons.person, color: Colors.white, size: 30),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              'Hello, ${data["name"] ?? ""}',
+              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(String iconPath, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      splashColor: Colors.white10,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          children: [
+            Image.asset(iconPath, color: Colors.white, scale: 1.5),
+            const SizedBox(width: 18),
+            Text(label, style: const TextStyle(color: Colors.white, fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutItem() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white24),
+      ),child: ListTile(
+        leading: Image.asset("assets/images/logout.png", color: AppColors.xwhite, scale: 1.5),
+        title: const Text("Logout", style: TextStyle(fontSize: 16, color: Colors.white)),
+        onTap: () async {
+          await SharedPrefService().clearUserDetails();
+          Get.offAll(const SplashView());
+        },
+      ),
+    );
+  }
+
+  Widget _buildMatchedUserCard(MatchedUser user) {
+    return GestureDetector(
+      onTap: () => Get.to(OneToOneChatPage(otherUserId: user.uid)),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 6))
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: Stack(
+            children: [
+              // Profile Image
+              Image.network(
+                user.image,
+                height: 340,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) =>
+                loadingProgress == null
+                    ? child
+                    : Container(
+                    height: 340,
+                    color: Colors.black12,
+                    child: const Center(child: CircularProgressIndicator())),
+              ),
+
+              // Gradient Overlay
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 120,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withOpacity(0.0),
+                        Colors.black.withOpacity(0.65)
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Name & Match Text
+              Positioned(
+                bottom: 24,
+                left: 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Match: ${user.matchPercent.toStringAsFixed(0)}%",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.85),
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Chat Button Floating
+              Positioned(
+                bottom: 20,
+                right: 20,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    // gradient: AppDecorations.buttonGradient,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.chat, color: Colors.white, size: 28),
+                    onPressed: () {
+                      Get.to(OneToOneChatPage(otherUserId: user.uid));
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

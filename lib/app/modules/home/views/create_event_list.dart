@@ -1,18 +1,14 @@
 import 'dart:convert';
-
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:matchbox/app/utils/constant.dart';
-
-import '../../../../main.dart';
-import '../../../utils/app_colors.dart';
-import '../../../utils/background_gradient.dart';
-import 'notification_page.dart'; // Add intl package for date formatting
 import 'package:http/http.dart' as http;
+import 'notification_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 class CreateEventPage extends StatefulWidget {
   @override
   _CreateEventPageState createState() => _CreateEventPageState();
@@ -20,15 +16,14 @@ class CreateEventPage extends StatefulWidget {
 
 class _CreateEventPageState extends State<CreateEventPage> {
   final titleController = TextEditingController();
-  DateTime? selectedDate;
-  int guestLimit = 20;
-  bool chargeGuests = false;
   final priceController = TextEditingController();
+  DateTime? selectedDate;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  Map<String, dynamic> data = {};
+  int guestLimit = 20;
   NotificationController controller=Get.put(NotificationController());
-
+  bool chargeGuests = false;
+  Map<String, dynamic> data = {};
   void pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -39,6 +34,20 @@ class _CreateEventPageState extends State<CreateEventPage> {
     if (picked != null) setState(() => selectedDate = picked);
   }
 
+  // App primary gradient
+  LinearGradient get primaryGradient => LinearGradient(
+    colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  BoxDecoration get gradientBackground => BoxDecoration(
+    gradient: LinearGradient(
+      colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  );
   Future<void> saveEvent() async {
     if (titleController.text.isEmpty || selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -125,146 +134,171 @@ class _CreateEventPageState extends State<CreateEventPage> {
     var userData = snapshot.data();
     return userData!;
   }
+
   @override
   Widget build(BuildContext context) {
     final dateText = selectedDate == null
         ? 'Select Date'
         : DateFormat('dd MMM yyyy').format(selectedDate!);
-
     return Scaffold(
-      // appBar: AppBar(title: Text('Create Event')),
-      body: SafeArea(
-        child: Container(
-          decoration: AppDecorations.gradientBackground,
-          child: Column(
-            children: [
-              Constant.buildCutomTransparentAppBar("Create Event",false),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Card(
-                  elevation: 6,
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Event Title
-                        TextField(
-                          controller: titleController,
-                          decoration: InputDecoration(
-                            labelText: 'Event Title',
-                            border: OutlineInputBorder(),
-                            contentPadding:
-                            EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          ),
-                        ),
-                        SizedBox(height: 20),
+      // extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: gradientBackground,
 
-                        // Date picker row
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                dateText,
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: pickDate,
-                              child: Text('Pick Date'),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-
-                        // Guest limit slider
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Guest Limit: $guestLimit',
-                              style:
-                              TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                            ),
-                            Slider(
-                              value: guestLimit.toDouble(),
-                              min: 0,
-                              max: 500,
-                              divisions: 25,
-                              label: guestLimit.toString(),
-                              onChanged: (val) => setState(() => guestLimit = val.toInt()),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-
-                        // Charge Guests Switch
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Charge Guests?', style: TextStyle(fontSize: 16)),
-                            Switch(
-                              value: chargeGuests,
-                              onChanged: (val) => setState(() => chargeGuests = val),
-                            ),
-                          ],
-                        ),
-
-                        // Ticket price input (conditional)
-                        if (chargeGuests) ...[
-                          SizedBox(height: 16),
-                          TextField(
-                            controller: priceController,
-                            keyboardType:
-                            TextInputType.numberWithOptions(decimal: true),
-                            decoration: InputDecoration(
-                              labelText: 'Ticket Price',
-                              border: OutlineInputBorder(),
+        child: Column(
+          children: [
+            Constant.buildCutomTransparentAppBar("Create Event", false),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(20),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(26),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      padding:
+                      EdgeInsets.symmetric(vertical: 26, horizontal: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildTextField("Event Title", titleController),
+                          SizedBox(height: 22),
+                          buildDatePicker(dateText),
+                          SizedBox(height: 22),
+                          buildGuestSlider(),
+                          SizedBox(height: 20),
+                          buildChargeSwitch(),
+                          if (chargeGuests) ...[
+                            SizedBox(height: 20),
+                            buildTextField(
+                              "Ticket Price",
+                              priceController,
                               prefixText: '₹ ',
-                              contentPadding:
-                              EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              keyboardType: TextInputType.number,
                             ),
-                          ),
+                          ],
+                          SizedBox(height: 40),
+                          buildGradientButton("Create Event", () {
+                            saveEvent();
+                          }),
                         ],
-
-                        SizedBox(height: 30),
-
-                        // Create event button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: saveEvent,
-
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              backgroundColor: AppColors.Xlightflo.withOpacity(0.8)
-                            ),
-                            child: Text(
-                              'Create Event',
-                              style: TextStyle(fontSize: 18,color: Colors.white),
-                            ),
-                          ),
-                        )
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTextField(String label, TextEditingController controller,
+      {TextInputType? keyboardType, String? prefixText}) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.white70),
+        prefixText: prefixText,
+        prefixStyle: TextStyle(color: Colors.white),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.12),
+        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget buildDatePicker(String dateText) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            dateText,
+            style: TextStyle(fontSize: 16, color: Colors.white),
           ),
+        ),
+        buildGradientButton("Pick Date", pickDate, horizontalPadding: 22),
+      ],
+    );
+  }
+
+  Widget buildGuestSlider() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Guest Limit: $guestLimit',
+          style: TextStyle(fontSize: 16, color: Colors.white70),
+        ),
+        Slider(
+          value: guestLimit.toDouble(),
+          min: 0,
+          max: 500,
+          divisions: 25,
+          label: guestLimit.toString(),
+          activeColor: Color(0xFFFFC371),
+          inactiveColor: Colors.white24,
+          onChanged: (val) => setState(() => guestLimit = val.toInt()),
+        ),
+      ],
+    );
+  }
+
+  Widget buildChargeSwitch() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('Charge Guests?', style: TextStyle(fontSize: 16, color: Colors.white70)),
+        Switch(
+          value: chargeGuests,
+          onChanged: (val) => setState(() => chargeGuests = val),
+          activeColor: Color(0xFFFFC371),
+        ),
+      ],
+    );
+  }
+
+  Widget buildGradientButton(String text, VoidCallback onPressed,
+      {double horizontalPadding = 24, double verticalPadding = 14}) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: primaryGradient,
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            offset: Offset(0, 3),
+            blurRadius: 8,
+          )
+        ],
+      ),
+      child: MaterialButton(
+        onPressed: onPressed,
+        padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding, vertical: verticalPadding),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+        child: Text(
+          text,
+          style: TextStyle(
+              fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 }
-
 // Dummy Event class for reference
 class Event {
   final String title;

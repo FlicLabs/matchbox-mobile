@@ -4,15 +4,12 @@ import 'app_colors.dart';
 
 
 class AppDecorations {
-  static const BoxDecoration gradientBackground = BoxDecoration(
+  static const BoxDecoration gradientBackground =
+  BoxDecoration(
     gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        AppColors.xlightback1,
-        AppColors.xlightback2,
-        AppColors.xlightback3, // End color
-      ],
+      colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
     ),
   );
 }

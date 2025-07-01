@@ -19,7 +19,7 @@ class SplashView extends GetView<SplashController> {
   @override
   Widget build(BuildContext context) {
     Timer(Duration(seconds: 3), () {
-      Future.delayed(Duration(seconds: 2), () async {
+      Future.delayed(Duration(seconds: 1), () async {
         if (SharedPrefService().isLoggedIn) {
           FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -32,6 +32,7 @@ class SplashView extends GetView<SplashController> {
           var userData = snapshot.data();
           if (userData!['questionAnswers'] != null) {
             Get.off(MatchedUsersView(currentUserId: uid));
+            // Get.offAllNamed(Routes.HOME);
           } else {
             Get.offAllNamed(Routes.HOME);
           }
@@ -41,12 +42,15 @@ class SplashView extends GetView<SplashController> {
       });
     });
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       body: Container(
         height: Get.height,
         alignment: Alignment.center,
         decoration: AppDecorations.gradientBackground,
         child: Image.asset(
           "assets/images/tran_logo.png",
+          color: Colors.white,
           scale: 1.3,
         ),
       ),

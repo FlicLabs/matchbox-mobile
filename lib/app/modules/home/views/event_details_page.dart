@@ -1,9 +1,8 @@
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter_new/qr_flutter.dart';
-
-import 'package:flutter/material.dart';
 
 class EventDetailPage extends StatelessWidget {
   final String eventId;
@@ -11,62 +10,89 @@ class EventDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gradientBackground = BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text("Event Details")),
-      body: Card(
-        elevation: 6,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        margin: EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Event QR Code',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title:  Text("Event Details",style:TextStyle(color: Colors.white),),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: gradientBackground,
+        child: Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(26),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: EdgeInsets.all(26),
+                margin: EdgeInsets.symmetric(horizontal: 24, vertical: 50),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: Colors.white24),
                 ),
-              ),
-              SizedBox(height: 20),
-              QrImageView(
-                data: eventId,
-                version: QrVersions.auto,
-                size: 200.0,
-              ),
-              SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => EventChatPage(eventId: eventId),
-                    ));
-                  },
-                  icon: Icon(Icons.chat),
-                  label: Text("Enter Group Chat"),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Event QR Code',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
+                    SizedBox(height: 30),
+                    QrImageView(
+                      data: eventId,
+                      version: QrVersions.auto,
+                      size: 220.0,
+                      backgroundColor: Colors.white,
+                    ),
+                    SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      EventChatPage(eventId: eventId)));
+                        },
+                        icon: Icon(Icons.chat, color: Colors.white),
+                        label: Text("Enter Group Chat",
+                            style: TextStyle(fontSize: 16, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: Color(0xFF0F2027).withOpacity(0.8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 6,
+                        ),
+                      ),
+                    )
+                  ],
                 ),
-              )
-            ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 }
-
-
-///----event Chat Page
 
 
 class EventChatPage extends StatefulWidget {
@@ -85,23 +111,21 @@ class _EventChatPageState extends State<EventChatPage> {
 
   @override
   void initState() {
+    super.initState();
     getUserdata().then((value) {
       data = value;
       setState(() {});
     });
-    super.initState();
   }
 
   Future<Map<String, dynamic>> getUserdata() async {
     String uid = _auth.currentUser!.uid;
-    DocumentSnapshot<Map<String, dynamic>> snapshot =
-    await _firestore.collection('users').doc(uid).get();
+    var snapshot = await _firestore.collection('users').doc(uid).get();
     return snapshot.data()!;
   }
 
   void sendMessage() {
     if (messageController.text.isEmpty) return;
-
     _firestore
         .collection('events')
         .doc(widget.eventId)
@@ -109,91 +133,67 @@ class _EventChatPageState extends State<EventChatPage> {
         .add({
       'senderId': data["uid"],
       'senderName': data["name"],
-      'senderImage': data["photoURL"] ?? "", // optional
+      'senderImage': data["photoURL"] ?? "",
       'message': messageController.text,
       'timestamp': DateTime.now().toIso8601String(),
     });
-
     messageController.clear();
   }
 
   Widget buildMessageTile(DocumentSnapshot doc) {
     final isMe = doc['senderId'] == _auth.currentUser!.uid;
     final alignment = isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-    final color = isMe ? Colors.blue[100] : Colors.grey[200];
-    final borderRadius = isMe
-        ? BorderRadius.only(
-      topLeft: Radius.circular(16),
-      topRight: Radius.circular(16),
-      bottomLeft: Radius.circular(16),
-    )
-        : BorderRadius.only(
-      topLeft: Radius.circular(16),
-      topRight: Radius.circular(16),
-      bottomRight: Radius.circular(16),
-    );
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Column(
         crossAxisAlignment: alignment,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Column(
-              crossAxisAlignment: alignment,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    doc['senderName'] ?? 'Unknown',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[600],
+          Text(
+            doc['senderName'] ?? 'Unknown',
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white70),
+          ),
+          Row(
+            mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: [
+              if (!isMe)
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(doc['senderImage']),
+                ),
+              SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isMe
+                        ? Color(0xFF0F2027).withOpacity(0.8)
+                        : Color(0xFF0F2027).withOpacity(0.8),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                      bottomLeft:
+                      isMe ? Radius.circular(16) : Radius.circular(0),
+                      bottomRight:
+                      isMe ? Radius.circular(0) : Radius.circular(16),
                     ),
                   ),
+                  child: Text(
+                    doc['message'],
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment:
-                  isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                  children: [
-                    if (!isMe)
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundImage: NetworkImage(doc['senderImage']),
-                      ),
-                    SizedBox(width: 8),
-                    Flexible(
-                      child: Card(
-                        color: color,
-                        shape: RoundedRectangleBorder(borderRadius: borderRadius),
-                        child: Padding(
-                          padding:
-                          const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-                          child: Text(
-                            doc['message'],
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isMe) SizedBox(width: 8),
-                    if (isMe)
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundImage: data["photoURL"] != null &&
-                            data["photoURL"].toString().isNotEmpty
-                            ? NetworkImage(data["photoURL"])
-                            : AssetImage('assets/user_placeholder.png')
-                        as ImageProvider,
-                      ),
-                  ],
+              ),
+              if (isMe) SizedBox(width: 8),
+              if (isMe)
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(data["photoURL"] ?? ''),
                 ),
-              ],
-            ),
+            ],
           ),
-
         ],
       ),
     );
@@ -201,60 +201,83 @@ class _EventChatPageState extends State<EventChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final gradientBackground = BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text("Event Chat")),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('events')
-                  .doc(widget.eventId)
-                  .collection('messages')
-                  .orderBy('timestamp')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return Center(child: CircularProgressIndicator());
-                final messages = snapshot.data!.docs;
-                return ListView.builder(
-                  reverse: false,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) =>
-                      buildMessageTile(messages[index]),
-                );
-              },
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text("Event Chat",style: TextStyle(color: Colors.white),),
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: gradientBackground,
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore
+                    .collection('events')
+                    .doc(widget.eventId)
+                    .collection('messages')
+                    .orderBy('timestamp')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData)
+                    return Center(child: CircularProgressIndicator());
+                  final messages = snapshot.data!.docs;
+                  return ListView.builder(
+                    reverse: false,
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) =>
+                        buildMessageTile(messages[index]),
+                  );
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24)),
+            Padding(
+              padding: EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message',
+                        hintStyle: TextStyle(color: Colors.white54),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.1),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(26),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: Colors.blue,
-                  child: IconButton(
-                    icon: Icon(Icons.send, color: Colors.white),
-                    onPressed: sendMessage,
-                  ),
-                )
-              ],
-            ),
-          )
-        ],
+                  SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: Color(0xFF0F2027),
+                    child: IconButton(
+                      icon: Icon(Icons.send, color: Colors.white),
+                      onPressed: sendMessage,
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
 }
-
